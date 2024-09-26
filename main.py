@@ -1,12 +1,15 @@
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from apscheduler.schedulers.background import BackgroundScheduler
+from fastapi.responses import PlainTextResponse
+
 import contextlib
 import re
 import httpx
 import requests
 import logging
 import codecs
+
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -48,7 +51,7 @@ def task() -> None:
         if not date:
             date = datetime.now()
         else:
-            date = datetime.strptime(date, "%Y.%m.%dT%H:%M")
+            date = datetime.strptime(date.strip(), "%Y.%m.%dT%H:%M")
         f.truncate(0)
         f.write(datetime.now().strftime("%Y.%m.%dT%H:%M"))
         logging.info(f"Смена даты для выгрузки на {f.read()}")
@@ -74,7 +77,7 @@ def task() -> None:
             "price": int(re.sub(r'\D', '', raw_data['price'])),
             "custom_fields_values": [
                 {
-                    "field_id": 1002153,
+                    "field_id": 513379,
                     "values": [
                         {
                             "value": raw_data["delivery_address"]
@@ -83,7 +86,7 @@ def task() -> None:
                 },
                 
                 {
-                    "field_id": 1002155,
+                    "field_id": 513381,
                     "values": [
                         {
                             "value": raw_data["delivery_option"].get('name', '') if raw_data["delivery_option"] else ''
@@ -92,7 +95,7 @@ def task() -> None:
                 },
                 
                 {
-                    "field_id": 1002157,
+                    "field_id": 513383,
                     "values": [
                         {
                             "value": raw_data["payment_option"].get('name', '') if raw_data["payment_option"] else ''
@@ -101,7 +104,7 @@ def task() -> None:
                 },
 
                 {
-                    "field_id": 1002159,
+                    "field_id": 513385,
                     "values": [
                         {
                             "value": '\n'.join([row.get('name', '') for row in raw_data["products"]])
@@ -155,7 +158,7 @@ def task() -> None:
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(task, 'interval', hours=1)
+    scheduler.add_job(task, 'interval', minutes=1)
     scheduler.start()
     print("Планировщик запущен")
     logging.info("Планировщик запущено")
@@ -194,4 +197,16 @@ async def get_products():
         
         return response.json()
 
+@app.get("/logs", response_class=PlainTextResponse)
+def get_logs():
+    try:
+        with open("app.log", "r") as log_file:
+            logs = log_file.read()
+        return logs
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Log file not found")
 
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="194.4.56.35", port=8000)
