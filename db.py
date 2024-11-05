@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from pydantic import BaseModel, Field
 from typing import Dict
 
-DATABASE_URL = "postgresql+psycopg2://postgres:4271@localhost:5432/satu-amo"
+DATABASE_URL = "postgresql+psycopg2://postgres:1111@localhost:5432/satu-amo"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
