@@ -73,7 +73,7 @@ def task() -> None:
         data: list[dict[str, int|str|dict[str,str]]] = []
         for raw_data in raw_datas:
             data.append({
-            "name": "Название сделки satu",
+            "name": "Заявка с satu",
             "price": int(re.sub(r'\D', '', raw_data['price'])),
             "custom_fields_values": [
                 {
@@ -158,7 +158,7 @@ def task() -> None:
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
     scheduler = BackgroundScheduler()
-    scheduler.add_job(task, 'interval', minutes=1)
+    scheduler.add_job(task, 'interval', hours=1)
     scheduler.start()
     print("Планировщик запущен")
     logging.info("Планировщик запущено")
